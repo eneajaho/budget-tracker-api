@@ -5,23 +5,14 @@ namespace App\Http\Controllers;
 use App\Account;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class AccountController extends Controller
 {
-    /**
-     * Return the Id of the logged in user
-     */
-    public function userId() {
-        return auth()->user()->id;
-    }
 
-    /**
-     * Returns a listing of the resource.
-     * @return Response
-     */
     public function index()
     {
-        $accounts = Account::where('user_id', $this->userId())->get();
+        $accounts = Account::where('user_id', Auth::id())->get();
 
         return response()->json([
             'accounts' => $accounts
@@ -29,25 +20,23 @@ class AccountController extends Controller
     }
 
 
-    /**
-     * Returns the specified resource.
-     * @return Response
-     */
     public function show($id)
     {
         $account = Account::find($id);
 
-        return response()->json([
-            'account' => $account
-        ], 201);
+        if (Auth::user()->can('view', $account)) {
+            return response()->json([
+                'account' => $account
+            ], 201);
+        } else {
+            return response()->json([
+                'error' => 'You cannot access this account!'
+            ], 401);
+        }
+
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param Request $request
-     * @return Response
-     */
+
     public function store(Request $request)
         {
             $account = Account::create($request->validate([
@@ -64,39 +53,48 @@ class AccountController extends Controller
         ], 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param Request $request
-     * @param  int  $id
-     * @return Response
-     */
+
     public function update(Request $request, $id)
     {
         $account = Account::find($id);
 
-        $account->fill($request->all());
+        if (Auth::user()->can('update', $account)) {
 
-        $account->save();
+            $account->fill($request->all());
 
-        return response()->json([
-            'account' => $account
-        ], 201);
+            $account->save();
+
+            return response()->json([
+                'account' => $account
+            ], 201);
+
+        } else {
+            return response()->json([
+                'error' => 'You cannot update this account!'
+            ], 401);
+        }
+
+
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return Response
-     */
+
     public function destroy($id)
     {
-        Account::find($id)->delete();
+        $account = Account::find($id);
 
-        return response()->json([
-            'message' => 'The account was deleted successfully!'
-        ], 201);
+        if (Auth::user()->can('delete', $account)) {
+
+            $account->delete();
+
+            return response()->json([
+                'success' => 'The account was deleted successfully!'
+            ], 201);
+        } else {
+            return response()->json([
+                'error' => 'You cannot delete this account!'
+            ], 401);
+        }
+
     }
 
 
