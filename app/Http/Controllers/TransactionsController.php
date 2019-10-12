@@ -4,26 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Transaction;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 class TransactionsController extends Controller
 {
-    /**
-     * Return the Id of the logged in user
-    */
-    public function userId() {
-        return auth()->user()->id;
-    }
 
-    /**
-     * Returns a listing of the resource.
-     * @return Response
-     */
     public function index()
     {
-        $transactions = Transaction::where('user_id', $this->userId())
-            ->with('user')->get();
+        $transactions = Transaction::where('user_id', Auth::id())
+            ->with('user', 'type', 'account')
+            ->get();
 
         return response()->json([
             'transactions' => $transactions
@@ -31,25 +21,22 @@ class TransactionsController extends Controller
     }
 
 
-    /**
-     * Returns the specified resource.
-     * @return Response
-     */
     public function show($id)
     {
-        $transaction = Transaction::find($id);
+        $transaction = Transaction::with('user', 'type', 'account')->find($id);
 
-        return response()->json([
-            'transaction' => $transaction
-        ], 201);
+        if (Auth::user()->can('view', $transaction)) {
+            return response()->json([
+                'transaction' => $transaction
+            ], 201);
+        } else {
+            return response()->json([
+                'error' => 'You cannot access this transaction!'
+            ], 401);
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param Request $request
-     * @return Response
-     */
+
     public function store(Request $request)
     {
         $transaction = Transaction::create($request->validate([
@@ -67,42 +54,47 @@ class TransactionsController extends Controller
         ], 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param Request $request
-     * @param  int  $id
-     * @return Response
-     */
+
     public function update(Request $request, $id)
     {
         $transaction = Transaction::find($id);
 
-        $transaction->fill($request->all());
+        if (Auth::user()->can('update', $transaction)) {
 
-        $transaction->save();
+            $transaction->fill($request->all());
 
-        return response()->json([
-            'transaction' => $transaction
-        ], 201);
+            $transaction->save();
+
+            return response()->json([
+                'transaction' => $transaction
+            ], 201);
+
+        } else {
+            return response()->json([
+                'error' => 'You cannot update this transaction!'
+            ], 401);
+        }
+
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return Response
-     */
+
     public function destroy($id)
     {
-        Transaction::find($id)->delete();
+        $transaction = Transaction::find($id);
 
-        return response()->json([
-            'message' => 'The transaction was deleted successfully!'
-        ], 201);
+        if (Auth::user()->can('delete', $transaction)) {
+
+            $transaction->delete();
+
+            return response()->json([
+                'success' => 'The transaction was deleted successfully!'
+            ], 201);
+        } else {
+            return response()->json([
+                'error' => 'You cannot delete this transaction!'
+            ], 401);
+        }
+
     }
-
-//    test
-
 
 }

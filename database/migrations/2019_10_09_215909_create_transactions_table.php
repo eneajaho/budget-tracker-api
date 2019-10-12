@@ -19,14 +19,14 @@ class CreateTransactionsTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
 
-            $table->integer('type_id');
-//          $table->foreign('type_id')->references('id')->on('t_types');
+            $table->unsignedBigInteger('type_id');
+//            $table->foreign('type_id')->references('id')->on('types');
 
-            $table->integer('category_id');
-//          $table->foreign('category_id')->references('id')->on('t_categories');
-//
-            $table->integer('account_id');
-//          $table->foreign('account_id')->references('id')->on('t_accounts');
+            $table->unsignedBigInteger('category_id');
+//            $table->foreign('category_id')->references('id')->on('categories');
+
+            $table->unsignedBigInteger('account_id');
+//            $table->foreign('account_id')->references('id')->on('accounts');
 
             $table->integer('value');
             $table->string('currency');
