@@ -1,5 +1,8 @@
 # Budget Tracker Api
 A budget tracker API built with Laravel 6
+ 
+[How To Use: Taskman Documentation](https://documenter.getpostman.com/view/6526771/SVtWvmj6?version=latest)
+
 
 # Database Schema
 ![DB Schema](https://i.imgur.com/oPlM7rv.png)
